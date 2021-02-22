@@ -1,0 +1,57 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsRuntime
+
+<div class="col-md-4 col-lg-4 col-xl-3">
+    <div class="card">
+        <img src="@libro.fotoCaratula" class="card-img-top" alt="...">
+        <div class="card-body">
+            <h5 class="card-title">@libro.titulo - @libro.nombreAutor</h5>
+            <h6 class="card-title">Stock:  @libro.stock</h6>
+            <p class="card-text">@libro.resumen</p>
+            @*<a href="#" class="btn btn-primary">Descargar</a>*@
+
+            @if (verDescargar)
+            {
+                <button @onclick="@(()=>Descargar(libro.iidLibro))" class="btn btn-success">Descargar</button>
+            }
+
+            @if (verReservar)
+            {
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#popUpReserva" @onclick="@(()=>Reservar(libro.iidLibro))">
+                    Reservar
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<int> eventoReservar { get; set; }
+
+    [Parameter]
+    public bool verDescargar { get; set; } = false;
+
+    [Parameter]
+    public bool verReservar { get; set; } = false;
+
+    [Parameter]
+    public LibroCLS libro { get; set; }
+
+    public async Task Descargar(int iidLibro)
+    {
+        libro = await http.GetFromJsonAsync<LibroCLS>("api/Libro/RecuperarLibro/" + iidLibro);
+        string libroBase64 = libro.libroPDF;
+        await ijsRuntime.InvokeVoidAsync("descargarPDF", libroBase64);
+    }
+
+    public void Reservar(int iidLibro)
+    {
+        eventoReservar.InvokeAsync(iidLibro);
+    }
+}

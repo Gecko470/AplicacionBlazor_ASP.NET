@@ -1,0 +1,108 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+<EditForm Model="@oPersonaCLS" OnValidSubmit="GuardarDatos">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>ID</label>
+        <InputNumber @bind-Value="oPersonaCLS.iidPersona" readonly class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Nombre</label>
+        <InputText @bind-Value="oPersonaCLS.nombre" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Apellido Paterno</label>
+        <InputText @bind-Value="oPersonaCLS.aPaterno" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Apellido Materno</label>
+        <InputText @bind-Value="oPersonaCLS.aMaterno" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Teléfono</label>
+        <InputText @bind-Value="oPersonaCLS.telefono" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <InputText @bind-Value="oPersonaCLS.email" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Fecha nacimiento</label>
+        <InputDate @bind-Value="oPersonaCLS.fechaNto" class="form form-control" />
+    </div>
+    <div class="form-group">
+        <label>Nombre Usuario</label>
+        <InputText @bind-Value="oPersonaCLS.nombreUsuario" class="form form-control" />
+    </div>
+    @if (visibleContrasenia)
+    {
+        <div class="form-group">
+            <label>Contraseña</label>
+            <InputText type="password" @bind-Value="oPersonaCLS.contrasenia" class="form form-control" />
+        </div>
+    }
+    @if (visibleTipoUsuario)
+    {
+        <div class="form-group">
+            <label>Tipo Usuario</label>
+            <InputSelect @bind-Value="oPersonaCLS.iidTipoUsuario" class="form form-control">
+                <option value="">Selecciona</option>
+                @foreach (TipoUsuarioCLS item in listaTipoUsuario)
+                    {
+                    <option value="@item.iidTipoUsuario">@item.nombre</option>
+                    }
+            </InputSelect>
+        </div>
+    }
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+
+</EditForm>
+
+@code {
+
+    public string ruta { get; set; }
+
+    [Parameter]
+    public PersonasCLS oPersonaCLS { get; set; } = new PersonasCLS();
+
+    [Parameter]
+    public List<TipoUsuarioCLS> listaTipoUsuario { get; set; }
+
+    [Parameter]
+    public bool visibleContrasenia { get; set; } = true;
+
+    [Parameter]
+    public bool visibleTipoUsuario { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string nombre = "listaPersonas";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+    public async Task<bool> GuardarDatos()
+    {
+        var respuesta = await http.PostAsJsonAsync("api/Personas/Guardar", oPersonaCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        @if (rpta == 1)
+        {
+            navigationManager.NavigateTo(ruta);
+
+        }
+
+        return await Task.FromResult(true);
+    }
+
+}

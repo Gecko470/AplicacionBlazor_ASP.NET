@@ -1,0 +1,576 @@
+﻿@inject NavigationManager navitation
+@using OfficeOpenXml
+@using OfficeOpenXml.Style
+@using System.IO
+@using iText.Pdfa
+@using iText.Kernel.Pdf
+@using iText.Layout
+@using iText.Layout.Element
+@using iText.Layout.Properties
+@inject IJSRuntime ijsRuntime
+@using Syncfusion.DocIO
+@using Syncfusion.DocIO.DLS
+
+
+@if (lista == null)
+{
+    <h3>Cargando ...</h3>
+}
+else
+{
+    <div>
+        @if (permitirAgregar)
+        {
+            <NavLink href="@rutaAgregar">
+                <button class="btn btn-primary">Agregar</button>
+            </NavLink>
+        }
+        @if (permitirExcel)
+        {
+            <a @onclick="ExportarExcel" href="@excel" class="btn btn-secondary">Exportar Excel</a>
+        }
+        @if (permitirPDF)
+        {
+            <button @onclick="ExportarPDF" class="btn btn-info">Exportar PDF</button>
+        }
+        @if (permitirWord)
+        {
+            <a @onclick="ExportarWord" href="@word" class="btn btn-secondary">Exportar Word</a>
+        }
+
+    </div>
+
+    @if (type != "none")
+    {
+        <label>@label</label>
+
+        @if (type == "text")
+        {
+
+            @if (button == true)
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+
+                    <input type="text" @bind-value="valor" @bind-value:event="oninput" class="form form-control" />
+                    <button class="btn btn-primary" @onclick="Buscar">Buscar</button>
+
+                </div>
+            }
+            else
+            {
+                <div class="mb-4">
+
+                    <input type="text" @bind-value="valor" @bind-value:event="oninput" @onkeyup="Buscar" class="form form-control" />
+
+                </div>
+            }
+        }
+        else if (type == "combobox")
+        {
+            @if (button == true)
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+                    <select @bind-value="valor" @bind-value:event="oninput" class="form form-control">
+
+                        <option value="">Selecciona</option>
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+
+                    </select>
+
+                    <input type="button" value="Buscar" class="btn btn-primary" @onclick="Buscar" />
+                </div>
+            }
+            else
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+                    <select @bind-value="valor" @bind-value:event="oninput" @onchange="Buscar" class="form form-control">
+
+                        <option value="">Selecciona</option>
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+
+                    </select>
+                </div>
+            }
+        }
+    }
+
+    <div class="dataTables_wrapper">
+        @*Estilos datable js*@
+        <div class="dataTables_length" id="example_length">
+            <label>
+                Show
+                <select name="example_length" aria-controls="example" class="" @bind-value="numRegPag" @bind-value:event="oninput" @onchange="CambiarRegPag">
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select> entries
+            </label>
+        </div>
+
+        <table class="table dataTable no-footer">
+
+            <thead>
+                <tr role="row">
+                    @*Estilos datable js*@
+                    @foreach (var cab in cabeceras)
+                    {
+                        <th>
+                            @cab
+                        </th>
+                    }
+
+                    @if (permitirEliminar == true || permitirEditar == true || permitirBotonAdicUno == true || permitirBotonAdicDos == true)
+                    {
+                        <th>Operaciones</th>
+                    }
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @{
+                    List<Object> listaRetornar = new List<object>();
+                    int indiceValor;
+
+                    @if (indiceVal > 1)
+                    {
+                        indiceValor = indiceVal;
+                    }
+                    else
+                    {
+                        indiceValor = 1;
+                    }
+
+                    int inicio = (indiceValor * numRegPag) - numRegPag;
+                    int final = indiceValor * numRegPag;
+
+                    @for (int i = inicio; i < final; i++)
+                    {
+                        @if (i < lista.Length)
+                        {
+                            listaRetornar.Add(lista[i]);
+                        }
+                    }
+                }
+
+
+                @foreach (object obj in listaRetornar)
+                {
+                    <tr role="row" class="odd">
+                        @*Estilos datable js*@
+
+                        @foreach (var propiedad in parametrosAmostrar)
+                        {
+                            <td>@obj.GetType().GetProperty(propiedad).GetValue(obj).ToString()</td>
+                        }
+
+
+                        @if (permitirEliminar == true || permitirEditar == true || permitirBotonAdicUno == true || permitirBotonAdicDos == true)
+                        {
+                            <td>
+                                @if (permitirEditar)
+                                {
+
+                                    <button class="btn btn-primary fa fa-edit" @onclick="@(()=>Editar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+
+                                }
+
+                                @if (permitirEliminar)
+                                {
+                                    <button class="btn btn-danger fa fa-trash" data-bs-toggle="modal" data-bs-target="#exampleModal" @onclick="@(()=>Eliminar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+
+                                    <MensajeConfirmacion id="@valorEliminar" eventoEliminar="EliminarDatos" />
+                                }
+
+                                @if (permitirBotonAdicUno)
+                                {
+                                    <i class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAdicional1" @onclick="@(()=>BotonUnoEvento(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))">
+                                        @ChildContent
+                                    </i>
+                                    @*<button class="btn btn-danger fa fa-trash" data-bs-toggle="modal" data-bs-target="#modalAdicional1" @onclick="@(()=>BotonUnoEvento(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>*@
+
+                                    <MensajeConfirmacion idPopUp="modalAdicional1" id="@valorEliminar" eventoEliminar="EliminarDatos"
+                                                         TituloPopUpConfirmacion="@tituloAdicional1" eventoValores="ValoresDatos" />
+                                }
+
+                                @if (permitirBotonAdicDos)
+                                {
+                                    <i class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAdicional2" @onclick="@(()=>BotonDosEvento(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))">
+                                        @Footer
+                                    </i>
+                                    @*<button class="btn btn-danger fa fa-trash" data-bs-toggle="modal" data-bs-target="#modalAdicional2" @onclick="@(()=>BotonDosEvento(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>*@
+
+                                    <MensajeConfirmacion idPopUp="modalAdicional2" id="@valorEliminar" eventoEliminar="EliminarDatos"
+                                                         TituloPopUpConfirmacion="@tituloAdicional2" eventoValores="ValoresDatos" />
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+        @{
+            int inicioPaginado = inicio + 1;
+            int finalPaginado = inicioPaginado + numRegPag - 1;
+            @if (finalPaginado > lista.Length)
+            {
+                finalPaginado = lista.Length;
+            }
+        }
+        <div class="dataTables_info" id="example_info" role="status" aria-live="polite">Showing @inicioPaginado to @finalPaginado of @lista.Length entries</div>
+
+        <div class="dataTables_paginate paging_simple_numbers">
+            <span>
+                @for (int i = 1; i <= numPaginas(); i++)
+                {
+                    int data = i;
+                    <button class="paginate_button" aria-controls="example" data-dt-idx="1" tabindex="0" @onclick="@(() => Paginar(data))">
+                        @i
+                    </button>
+                }
+            </span>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment Footer { get; set; }
+
+    [Parameter]
+    public string tituloAdicional1 { get; set; }
+
+    [Parameter]
+    public string tituloAdicional2 { get; set; }
+
+    public string valor { get; set; }
+
+    public string valorEliminar { get; set; }
+
+    [Parameter]
+    public string[] cabeceras { get; set; }
+
+    //Este parametro me trae todos los datos de la tabla
+    [Parameter]
+    public object[] lista { get; set; }
+
+    //Esta variable me muestra la lista de datos para el paginado
+    public List<Object> listaRetornar { get; set; }
+
+    //Numero de la página
+    public int indiceVal { get; set; }
+
+    //Metodo para calcular el número de páginas
+    public int numPaginas()
+    {
+        int numBotones;
+        int numRegistros = lista.Length;
+
+        if (numRegistros % numRegPag == 0)
+        {
+            numBotones = numRegistros / numRegPag;
+        }
+        else
+        {
+            numBotones = (numRegistros / numRegPag) + 1;
+        }
+
+        return numBotones;
+    }
+
+    [Parameter]
+    public string type { get; set; } = "none";
+
+    [Parameter]
+    public string label { get; set; } = "";
+
+    [Parameter]
+    public bool button { get; set; } = true;
+
+    [Parameter]
+    public object[] combobox { get; set; } = null;
+
+    [Parameter]
+    public string displayMember { get; set; } = null;
+
+    [Parameter]
+    public string valueMember { get; set; } = null;
+
+    [Parameter]
+    public bool permitirAgregar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEditar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEliminar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirBotonAdicUno { get; set; } = false;
+
+    [Parameter]
+    public bool permitirBotonAdicDos { get; set; } = false;
+
+    [Parameter]
+    public bool permitirExcel { get; set; } = false;
+
+    [Parameter]
+    public bool permitirPDF { get; set; } = false;
+
+    [Parameter]
+    public bool permitirWord { get; set; } = false;
+
+    [Parameter]
+    public string rutaAgregar { get; set; } = "";
+
+    [Parameter]
+    public string rutaEditar { get; set; } = "";
+
+    public int numRegPag { get; set; } = 5;
+
+    public void CambiarRegPag(ChangeEventArgs e)
+    {
+        int valorCambiado = int.Parse(e.Value.ToString());
+        numRegPag = valorCambiado;
+    }
+
+    [Parameter]
+    public EventCallback<String> eventoEditar { get; set; }
+
+    [Parameter]
+    public EventCallback<String> eventoEliminar { get; set; }
+
+
+    [Parameter]
+    public EventCallback<String> eventoBusqueda { get; set; }
+
+    [Parameter]
+    public EventCallback<String[]> eventoDatos { get; set; }
+
+    public void Buscar()
+    {
+        eventoBusqueda.InvokeAsync(valor);
+    }
+
+    public void Editar(string data)
+    {
+        navitation.NavigateTo(rutaEditar + "/" + data);
+        eventoEditar.InvokeAsync(data);
+    }
+
+    public void Eliminar(string data)
+    {
+        valorEliminar = data;
+    }
+
+    public void BotonUnoEvento(string data)
+    {
+        valorEliminar = data;
+    }
+
+    public void BotonDosEvento(string data)
+    {
+        valorEliminar = data;
+    }
+
+    public void EliminarDatos(string data)
+    {
+        eventoEliminar.InvokeAsync(data);
+    }
+
+    public void ValoresDatos(string[] datos)
+    {
+        eventoDatos.InvokeAsync(datos);
+    }
+
+    public void Paginar(int indicePag)
+    {
+        indiceVal = indicePag;
+    }
+
+    [Parameter]
+    public string[] parametrosAmostrar { get; set; }
+
+    public string excel = "";
+
+    public void ExportarExcel()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            using (ExcelPackage ep = new ExcelPackage())
+            {
+                ep.Workbook.Worksheets.Add("Hoja");
+                ExcelWorksheet ew = ep.Workbook.Worksheets[0];
+
+                for (int i = 0; i < cabeceras.Length; i++)
+                {
+                    ew.Column(i + 1).Width = 50;
+                    ew.Cells[1, i + 1].Value = cabeceras[i];
+                }
+
+                int fila = 2;
+                int columna = 1;
+
+                foreach (object item in lista)
+                {
+                    columna = 1;
+                    foreach (string propiedad in parametrosAmostrar)
+                    {
+                        ew.Cells[fila, columna].Value = item.GetType().GetProperty(propiedad).GetValue(item).ToString();
+                        columna++;
+                    }
+
+                    fila++;
+                }
+
+                //Esto es para poder descargar el archivo Excel
+
+                ep.SaveAs(ms);//Guardo en memoria
+                byte[] buffer = ms.ToArray();//Guardo lo que tengo en memoria en un array de bytes
+                string base64 = Convert.ToBase64String(buffer);//Convierto el array de bytes a una cadena base64
+                excel = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + base64;
+                //Esta variable es necesaria para poder descargar el archivo excel generado, es el MIME, buscado en Google
+                //para archivos XSLX, agregamos ";base64," para que se pueda descargar y le concatenamos el string base 64
+            }
+        }
+    }
+
+    [Parameter]
+    public string tituloReporte { get; set; }
+
+    public string pdf { get; set; }
+
+    public void ExportarPDF()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            PdfWriter writer = new PdfWriter(ms);
+            using (var pdfDoc = new PdfDocument(writer))
+            {
+                //Llenado del documento
+
+                Document doc = new Document(pdfDoc);
+                Paragraph p1 = new Paragraph(tituloReporte);
+                p1.SetTextAlignment(TextAlignment.CENTER);
+                p1.SetFontSize(20);
+                doc.Add(p1);
+
+                Table tabla = new Table(cabeceras.Length);
+
+                Cell celda;
+                for (int i = 0; i < cabeceras.Length; i++)
+                {
+                    celda = new Cell();
+                    celda.Add(new Paragraph(cabeceras[i]));
+                    tabla.AddHeaderCell(celda);
+                }
+
+                foreach (object item in lista)
+                {
+                    foreach (string propiedad in parametrosAmostrar)
+                    {
+                        celda = new Cell();
+                        celda.Add(new Paragraph(item.GetType().GetProperty(propiedad).GetValue(item).ToString()));
+                        tabla.AddCell(celda);
+                    }
+                }
+
+                doc.Add(tabla);
+
+                //Cerramos documento y writer
+
+                doc.Close();
+                writer.Close();
+
+
+                //Para descargar el documento
+
+                byte[] buffer = ms.ToArray();
+                string base64 = Convert.ToBase64String(buffer);
+                pdf = "data:application/pdf;base64," + base64;//Buscar el MIME Type para PDF en Internet
+
+                ijsRuntime.InvokeVoidAsync("descargarPDF", pdf);//El IJSRuntime me permite comunicarme con JS, paso el nombre
+                                                                //de la función que voy a crear en JS, llamada descargarPDF y le paso la variable pdf
+            }
+        }
+    }
+
+    public string word = "";
+    public string tituloWord = "Listado Word";
+
+    private void ExportarWord()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            WordDocument document = new WordDocument();
+
+            WSection section = document.AddSection() as WSection;
+
+            section.PageSetup.Margins.All = 72;
+
+            IWParagraph paragraph = section.AddParagraph();
+
+            paragraph.ApplyStyle("Normal");
+
+            paragraph.ParagraphFormat.HorizontalAlignment = Syncfusion.DocIO.DLS.HorizontalAlignment.Center;
+
+            //Titulo del documento
+            WTextRange textRange = paragraph.AppendText(tituloWord) as WTextRange;
+            textRange.CharacterFormat.FontSize = 20f;
+            textRange.CharacterFormat.FontName = "Calibri";
+            textRange.CharacterFormat.TextColor = Syncfusion.Drawing.Color.Blue;
+
+
+            //Contenido del documento
+            IWTable tabla = section.AddTable();
+            int numCol = cabeceras.Length;
+            int numFilas = lista.Length;
+            tabla.ResetCells(numFilas + 1, numCol);
+
+            for (int i = 0; i < numCol; i++)
+            {
+                tabla[0, i].AddParagraph().AppendText(cabeceras[i]);
+            }
+
+            int col = 0;
+            int fila = 1;
+            foreach (var item in lista)
+            {
+                col = 0;
+                foreach (var propiedad in parametrosAmostrar)
+                {
+                    tabla[fila, col].AddParagraph().AppendText(item.GetType().GetProperty(propiedad).GetValue(item).ToString());
+                    col++;
+                }
+                fila++;
+            }
+
+            //Descarga del documento
+            document.Save(ms, FormatType.Docx);
+            byte[] buffer = ms.ToArray();
+            string base64 = Convert.ToBase64String(buffer);
+            word = "data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64," + base64;
+        }
+    }
+
+}

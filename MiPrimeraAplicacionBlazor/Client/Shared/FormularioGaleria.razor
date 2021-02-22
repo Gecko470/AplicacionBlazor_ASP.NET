@@ -1,0 +1,18 @@
+﻿<div class="mb-4 mt-4" style="display: grid; grid-template-columns: 1fr 8fr">
+    <label>Libro</label>
+    <input type="text" class="form form-control" @bind-value="valor" @bind-value:event="oninput" @onkeyup="Busqueda" />
+</div>
+
+@code {
+
+    public string valor { get; set; }
+
+    [Parameter]
+    public EventCallback<string> eventoBusqueda { get; set; }
+
+    public void Busqueda()
+    {
+        eventoBusqueda.InvokeAsync(valor);
+    }
+
+}

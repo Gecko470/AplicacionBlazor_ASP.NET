@@ -1,0 +1,110 @@
+﻿@layout LoginLayout
+@page "/"
+@using MiPrimeraAplicacionBlazor.Shared
+@using MiPrimeraAplicacionBlazor.Client.Service
+@inject NavigationManager navigation
+@inject AuthenticationStateProvider auth
+@inject HttpClient http
+
+
+
+<div style="display:grid; justify-items:center; align-items:center; min-height:100vh">
+
+    <div class="col-md-6 m-auto">
+
+        <EditForm Model="oUsuarioCLS" OnValidSubmit="Login">
+
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="text-center">
+                <img style="max-width: 100%" src="data:image/png;base64,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" />
+            </div>
+            <h3>Login Aplicación</h3>
+            <div class="form-group">
+                <label>Usuario</label>
+                <InputText @bind-Value="oUsuarioCLS.nombre" class="form form-control" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <InputText type="password" @bind-Value="oUsuarioCLS.password" class="form form-control" />
+            </div>
+
+            <input type="submit" value="Login" class="btn btn-primary btn btn-block" />
+
+            <NavLink class="nav-link" href="register" Match="NavLinkMatch.All">
+                <span class="oi oi-list-rich" aria-hidden="true">Registro</span>
+            </NavLink>
+
+        </EditForm>
+
+    </div>
+
+    <h6>@error</h6>
+
+</div>
+
+
+
+@code{
+
+    public string error = "";
+
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    public async Task<bool> Login()
+    {
+        var respuesta = await http.PostAsJsonAsync("api/Usuario/Login", oUsuarioCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+
+        if (rpta >= 1)
+        {
+            //Notificamos a nuestro método entrar, que tenemos un usuario autentificado, con un id que traemos en rpta
+
+            ((Autenticacion)auth).Entrar(rpta.ToString());
+
+            //Navegamos a la página Páginas
+            int iidPersona = await http.GetFromJsonAsync<int>("api/Personas/obtnerIdPersona/" + rpta);
+            navigation.NavigateTo("/paginaPrincipal/" + iidPersona);
+        }
+        else
+        {
+            if(rpta == 0)
+            {
+                error = "Usuario o contraseña incorrectos";
+            }
+            else
+            {
+                error = "Debe activar su cuenta con el enlace enviado a su cuenta de correo electrónico";
+            }
+
+        }
+
+        return await Task.FromResult(true);
+    }
+
+}
+
+@*<AuthorizeView>
+
+        <Authorized>
+            <h3 style="color: blue">Usuario Autorizado</h3>
+        </Authorized>
+
+        <NotAuthorized>
+            <h3 style="color: red">Usuario NO Autorizado</h3>
+        </NotAuthorized>
+
+    </AuthorizeView>
+
+
+        <Cursos />
+        <Alerta mensaje="Apúrate, que se acaba!" />
+
+
+        <h1>Hello, world!</h1>
+
+        Welcome to your new app.
+
+        <SurveyPrompt Title="How is Blazor working for you?" />*@

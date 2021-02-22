@@ -1,0 +1,93 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+<EditForm Model="oPaginaTipoUsuarioCLS" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>ID Página Tipo Usuario</label>
+        <InputNumber readOnly class="form form-control" @bind-Value="oPaginaTipoUsuarioCLS.iidPaginaTipoUsuario" />
+    </div>
+
+    <div class="form-group">
+        <label>Seleccione botones</label>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Opción</th>
+                    <th>Nombre Botón</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in listaBotones)
+                {
+                    <tr>
+                        <td>
+                            @if (oPaginaTipoUsuarioCLS.idsButtons.Contains(item.iidButton))
+                            {
+                                <input type="checkbox" checked @onchange="@(()=>CambiarValor(item.iidButton))" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" @onchange="@(()=>CambiarValor(item.iidButton))" />
+                            }
+                        </td>
+
+                        <td>@item.nombreButton</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+@code {
+
+    public string ruta { get; set; }
+
+    [Parameter]
+    public PaginaTipoUsuarioCLS oPaginaTipoUsuarioCLS { get; set; } = new PaginaTipoUsuarioCLS();
+
+    public List<BotonesCLS> listaBotones = new List<BotonesCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaBotones = await http.GetFromJsonAsync<List<BotonesCLS>>("api/PaginaTipoUsuario/listarBotones");
+
+        string nombre = "listaPaginaTipoUsuario";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+    public async Task Guardar()
+    {
+        var respuesta = await http.PostAsJsonAsync("api/PaginaTipoUsuario/Guardar", oPaginaTipoUsuarioCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        @if (rpta == 1)
+        {
+            navigationManager.NavigateTo(ruta);
+        }
+    }
+
+    public void CambiarValor(int iidButton)
+    {
+        if (oPaginaTipoUsuarioCLS.idsButtons.Contains(iidButton))
+        {
+            oPaginaTipoUsuarioCLS.idsButtons.Remove(iidButton);
+        }
+        else
+        {
+            oPaginaTipoUsuarioCLS.idsButtons.Add(iidButton);
+        }
+    }
+}

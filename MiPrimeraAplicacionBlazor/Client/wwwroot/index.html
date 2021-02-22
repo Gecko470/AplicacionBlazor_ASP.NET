@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MiPrimeraAplicacionBlazor</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css">
+
+    <script>
+
+        function descargarPDF(pdf) {
+
+            var a = document.createElement("a");
+            a.href = pdf;
+            a.download = "documentoPDF.pdf";
+            a.click();
+        }
+
+        function preview() {
+
+            var reader = new FileReader();
+
+            reader.readAsDataURL(document.getElementById("fuFoto").files[0]);
+
+            reader.onloadend = function () {
+
+                document.getElementById("imgFoto").src = reader.result;
+            }
+        }
+
+        function previewData() {
+
+            var reader = new FileReader();
+
+            reader.readAsDataURL(document.getElementById("fuLibro").files[0]);
+
+            reader.onloadend = function () {
+
+                document.getElementById("ifData").src = reader.result;
+            }
+        }
+
+        function obtenerImagen() {
+
+            return document.getElementById("imgFoto").src;
+        }
+
+        function obtenerPdf() {
+
+            return document.getElementById("ifData").src;
+        }
+
+        function cerrarPopUp() {
+
+            document.querySelector(".btn-close").click();
+        }
+
+        function cerrarPopUpId(id) {
+
+            document.getElementById(id).click();
+        }
+
+    </script>
+
+</head>
+
+<body>
+    <app>Loading...</app>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+
+</html>
+
+

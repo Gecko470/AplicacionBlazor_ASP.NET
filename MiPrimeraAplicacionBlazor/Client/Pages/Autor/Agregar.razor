@@ -1,0 +1,22 @@
+﻿@page "/agregarAutor"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+<h3>AgregarAutor</h3>
+
+
+<FormularioAutor listaSexo=listaSexo listaPais=listaPais />
+
+
+
+@code {
+
+    public List<SexoCLS> listaSexo = new List<SexoCLS>();
+    public List<PaisCLS> listaPais = new List<PaisCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaSexo = await http.GetFromJsonAsync<List<SexoCLS>>("api/Autor/ListarSexo");
+        listaPais = await http.GetFromJsonAsync<List<PaisCLS>>("api/Autor/ListarPais");
+    }
+}
+

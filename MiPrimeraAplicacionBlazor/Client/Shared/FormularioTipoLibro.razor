@@ -1,0 +1,61 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+<EditForm Model="@oTipoLibroCLS" OnValidSubmit="@GuardarDatos">
+    <DataAnnotationsValidator />
+    @*<ValidationSummary />*@
+
+    <div class="form-group">
+        <label>Introduce el ID del Tipo Libro</label>
+        <InputNumber @bind-Value="oTipoLibroCLS.IIDTIPOLIBRO" readonly class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Introduce el nombre del Tipo Libro</label>
+        <InputText @bind-Value="oTipoLibroCLS.NOMBRETIPOLIBRO" class="form form-control" />
+        <ValidationMessage For="@(()=>oTipoLibroCLS.NOMBRETIPOLIBRO)"/>
+    </div>
+
+    <div class="form-group">
+        <label>Introduce la descripción del Tipo Libro</label>
+        <InputText @bind-Value="oTipoLibroCLS.DESCRIPCIONTIPOLIBRO" class="form form-control" />
+        <ValidationMessage For="@(()=>oTipoLibroCLS.DESCRIPCIONTIPOLIBRO)" />
+    </div>
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public TipoLibroCLS oTipoLibroCLS { get; set; } = new TipoLibroCLS();
+
+    public string ruta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string nombre = "listaTipoLibro";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+
+    public async Task GuardarDatos()
+    {
+
+        var respuesta = await http.PostAsJsonAsync("api/TipoLibro/Guardar", oTipoLibroCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        @if (rpta == 1)
+        {
+            navigationManager.NavigateTo(ruta);
+        }
+    }
+}
+

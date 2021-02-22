@@ -1,0 +1,23 @@
+﻿@page "/editarPaginaTipoUsuario/{iidPaginaTipoUsuario}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+
+<h3>Editar Página Tipo Usuario</h3>
+
+
+<FormularioPaginaTipoUsuario oPaginaTipoUsuarioCLS="oPaginaTipoUsuarioCLS" />
+
+@code {
+
+    [Parameter]
+    public string iidPaginaTipoUsuario { get; set; }
+
+    public PaginaTipoUsuarioCLS oPaginaTipoUsuarioCLS { get; set; } = new PaginaTipoUsuarioCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oPaginaTipoUsuarioCLS = await http.GetFromJsonAsync<PaginaTipoUsuarioCLS>("api/PaginaTipoUsuario/RecuperarDatos/" + iidPaginaTipoUsuario);
+
+    }
+
+}

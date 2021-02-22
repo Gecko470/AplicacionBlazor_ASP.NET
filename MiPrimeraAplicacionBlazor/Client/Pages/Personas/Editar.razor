@@ -1,0 +1,24 @@
+﻿@page "/editarPersona/{iidPersona}"
+@using MiPrimeraAplicacionBlazor.Shared 
+@inject HttpClient http
+
+<h3>Editar Persona</h3>
+
+
+<FormularioPersona oPersonaCLS=oPersonaCLS listaTipoUsuario="listaTipoUsuario" visibleContrasenia=false />
+
+@code {
+
+    [Parameter]
+    public string iidPersona { get; set; }
+
+    public PersonasCLS oPersonaCLS = new PersonasCLS();
+
+    public List<TipoUsuarioCLS> listaTipoUsuario = new List<TipoUsuarioCLS>();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oPersonaCLS = await http.GetFromJsonAsync<PersonasCLS>("api/Personas/obtenerPersona/" + iidPersona);
+        listaTipoUsuario = await http.GetFromJsonAsync<List<TipoUsuarioCLS>>("api/TipoUsuario/ListarTipoUsuario");
+    }
+}

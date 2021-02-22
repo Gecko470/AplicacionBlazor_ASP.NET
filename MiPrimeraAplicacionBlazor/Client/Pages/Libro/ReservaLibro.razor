@@ -1,0 +1,82 @@
+﻿@page "/reservaLibro/{idPagina}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsRuntime
+
+<h3>Reserva Libros</h3>
+
+
+@if (listaLibro == null)//Tenemos que hacer esto porque si no se cae, la listaLibro aun no la tiene, por eso esperamos a que haga la llamada y tenga la lista recuperada
+{
+    <h3>Cargando...</h3>
+}
+else
+{
+
+    <AuthorizeView>
+        <Authorized>
+            <FormularioGaleria eventoBusqueda="Busqueda" />
+            <div class="row">
+                <LibrosGaleria listaLibro="listaLibro" verDescargar=false verReservar=true eventoReservar="IdLibro" />
+            </div>
+            <PopUpReserva idPopUp="popUpReserva" tituloPopUp="Reserva Libro" idBtnCerrar="btnCerrar" iidLibro="@idComponentePopUp" eventoGuardar="GuardarReserva" />
+        </Authorized>
+    </AuthorizeView>
+
+}
+
+
+@code {
+
+    public ReservaCLS oReservaCLS { get; set; }
+
+    [Parameter]
+    public string idPagina { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public LibroCLS[] listaLibro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authUser = await auth;
+        var user = authUser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            listaLibro = await http.GetFromJsonAsync<LibroCLS[]>("api/Libro/ListarLibroCompleto");
+        }
+    }
+
+    public async Task Busqueda(string valor)
+    {
+        listaLibro = await http.GetFromJsonAsync<LibroCLS[]>("api/Libro/FiltrarLibroNombre/" + valor);
+    }
+
+    [Parameter]
+    public int idComponentePopUp { get; set; } = 0;
+
+    public void IdLibro(int iidLibro)
+    {
+        idComponentePopUp = iidLibro;
+    }
+
+    public async Task GuardarReserva(ReservaCLS oReservaCLS)
+    {
+        var authUser = await auth;
+        var user = authUser.User;
+        string iidUsuarioRegistra = user.Identity.Name;
+        oReservaCLS.iidUsuario = iidUsuarioRegistra;
+        oReservaCLS.iidUsuarioRegistra = int.Parse(iidUsuarioRegistra);
+
+        var respuesta = await http.PostAsJsonAsync("api/Reserva/GuardarReserva", oReservaCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        if (rpta == 1)
+        {
+            await ijsRuntime.InvokeVoidAsync("cerrarPopUpId", "btnCerrar");
+        }
+    }
+
+}

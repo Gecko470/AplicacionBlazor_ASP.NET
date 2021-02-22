@@ -1,0 +1,17 @@
+﻿@page "/agregarPersona"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+<h3>Agregar Persona</h3>
+
+
+<FormularioPersona listaTipoUsuario="listaTipoUsuario" visibleContrasenia=true ruta="/listaPersonas"/>
+
+@code {
+
+    public List<TipoUsuarioCLS> listaTipoUsuario = new List<TipoUsuarioCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaTipoUsuario = await http.GetFromJsonAsync<List<TipoUsuarioCLS>>("api/TipoUsuario/ListarTipoUsuario");
+    }
+}

@@ -1,0 +1,47 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+
+<table class="table">
+    <thead>
+
+        <tr>
+            <th>Día Semana</th>
+            <th>Tarea</th>
+            <th>Realizado</th>
+            <th>Fecha Tarea</th>
+            <th>Operaciones</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        @foreach (TareaCLS item in listaTareas)
+        {
+            <tr>
+                <td>@item.diaSemana</td>
+                <td>@item.Tarea</td>
+                <td>@item.Realizado</td>
+                <td>@item.fechaTarea</td>
+                <td>
+                    <input type="button" value="Eliminar" class="btn btn-danger" @onclick="@(()=>Eliminar(@item.Tarea))" />
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+@code {
+
+    [Parameter]
+    public List<TareaCLS> listaTareas { get; set; }
+
+    [Parameter]
+    public EventCallback<String> onClickEliminar { get; set; }
+
+    public void Eliminar(string data)
+    {
+        onClickEliminar.InvokeAsync(data);
+    }
+
+}

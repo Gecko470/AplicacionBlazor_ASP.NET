@@ -1,0 +1,27 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+
+@foreach (var item in listaLibro)
+{
+    <CardLibro libro="item" verDescargar="verDescargar" verReservar="verReservar" eventoReservar="@(()=>Reservar(item.iidLibro))"/>
+}
+
+@code {
+
+    [Parameter]
+    public EventCallback<int> eventoReservar { get; set; }
+
+    [Parameter]
+    public bool verDescargar { get; set; } = false;
+
+    [Parameter]
+    public bool verReservar { get; set; } = false;
+
+    [Parameter]
+    public LibroCLS[] listaLibro{ get; set; }
+
+    public void Reservar(int iidLibro)
+    {
+        eventoReservar.InvokeAsync(iidLibro);
+    }
+
+}

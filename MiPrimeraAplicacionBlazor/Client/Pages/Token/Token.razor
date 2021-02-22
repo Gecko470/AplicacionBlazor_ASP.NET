@@ -1,0 +1,43 @@
+﻿@page "/Token/{token}"
+@inject HttpClient http
+<h3>Token</h3>
+
+@if (encontrado == -1)
+{
+    <h3>Cargando...</h3>
+}
+else
+{
+    @if (encontrado == 0)
+    {
+        <div class="alert alert-danger">Email NO validado</div>
+    }
+    else
+    {
+        <div class="alert alert-success">Cuenta activada. Ya puede acceder a Aplicación Blazor</div>
+    }
+}
+
+
+
+@code {
+
+    public int encontrado = -1;
+
+    [Parameter]
+    public string token { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        int respuesta = await http.GetFromJsonAsync<int>("api/Usuario/Token/" + token);
+
+        if (respuesta == 0)
+        {
+            encontrado = 0;
+        }
+        else
+        {
+            encontrado = 1;
+        }
+    }
+}

@@ -1,0 +1,100 @@
+﻿@page "/reservasRealizadas/{idPagina}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsRuntime
+<h3>Reservas Realizadas</h3>
+
+
+@{ 
+    string[] cabeceras = { "ID Reserva", "Nombre Usuario", "Titulo", "Cantidad", "Inicio Reserva", "Fin Reserva" };
+    string[] parametrosAmostrar = { "iidReserva", "nombreUsuario", "nombreLibro", "cantidad", "fechaInicioCadena", "fechaFinCadena"};
+}
+
+
+<AuthorizeView>
+    <Authorized>
+        <ListarRazor2 lista="@listaReservas" cabeceras="@cabeceras" parametrosAmostrar="@parametrosAmostrar"
+                      permitirEliminar="@permitirEliminar" eventoEliminar="Eliminar"
+                      type="text" button=false label="Introduce nombre de Usuario" eventoBusqueda="Buscar"
+                      permitirBotonAdicUno=true tituloAdicional1="Desea enviar la Reserva" eventoDatos="Operaciones"
+                      permitirBotonAdicDos=true tituloAdicional2="Desea retornar la Reserva">
+
+            <ChildContent>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M14.854 4.854a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 4H3.5A2.5 2.5 0 0 0 1 6.5v8a.5.5 0 0 0 1 0v-8A1.5 1.5 0 0 1 3.5 5h9.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4z" />
+                </svg>
+            </ChildContent>
+
+            <Footer>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                </svg>
+            </Footer>
+        </ListarRazor2>
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code {
+
+    public bool permitirEliminar { get; set; } = true;
+
+    public ReservaCLS oReservaCLS { get; set; }
+
+    [Parameter]
+    public string idPagina { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public ReservaCLS[] listaReservas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authUser = await auth;
+        var user = authUser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            listaReservas = await http.GetFromJsonAsync<ReservaCLS[]>("api/Reserva/ListarReservas/1");
+        }
+    }
+
+    public async Task Eliminar(string iidReserva)
+    {
+        int rpta = await http.GetFromJsonAsync<int>("api/Reserva/EliminarReserva/" + iidReserva);
+        if (rpta == 1)
+        {
+            listaReservas = await http.GetFromJsonAsync<ReservaCLS[]>("api/Reserva/ListarReservas/1");
+        }
+    }
+
+    public async Task Buscar(string valor)
+    {
+        //listaPagina = await http.GetFromJsonAsync<PaginaCLS[]>("api/Pagina/FiltrarPagina/" + valor);
+    }
+
+    public async Task Operaciones(string[] valores)
+    {
+        Console.WriteLine(valores[0]);
+        Console.WriteLine(valores[1]);
+
+        string texto = valores[1];
+
+        var authUser = await auth;
+        var user = authUser.User;
+        int iidUsuarioRegistra = int.Parse(user.Identity.Name);
+
+        if (texto == "Desea enviar la Reserva")
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Reserva/EnviarReserva/" + valores[0] + "/" + iidUsuarioRegistra);
+
+            if (rpta == 1)
+            {
+                listaReservas = await http.GetFromJsonAsync<ReservaCLS[]>("api/Reserva/ListarReservas/1");
+            }
+        }
+    }
+}

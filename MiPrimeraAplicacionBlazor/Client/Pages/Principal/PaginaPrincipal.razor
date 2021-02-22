@@ -1,0 +1,28 @@
+﻿@page "/paginaPrincipal/{iidPersona}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+<h3>Pagina Principal</h3>
+
+<AuthorizeView>
+    <Authorized>
+
+        <FormularioPersona visibleContrasenia=false oPersonaCLS="oPersonaCLS" visibleTipoUsuario=false />
+
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    [Parameter]
+    public string iidPersona { get; set; }
+
+    public PersonasCLS oPersonaCLS = new PersonasCLS();
+
+    public List<TipoUsuarioCLS> listaTipoUsuario = new List<TipoUsuarioCLS>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        oPersonaCLS = await http.GetFromJsonAsync<PersonasCLS>("api/Personas/obtenerPersona/" + iidPersona);
+    }
+}

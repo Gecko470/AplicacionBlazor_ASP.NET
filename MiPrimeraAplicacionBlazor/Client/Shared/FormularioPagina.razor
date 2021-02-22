@@ -1,0 +1,61 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+<EditForm Model="oPaginaCLS" OnValidSubmit="Guardar">
+
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label>ID Pagina</label>
+        <InputNumber @bind-Value="oPaginaCLS.iidPagina" readOnly class="form form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Mensaje</label>
+        <InputText @bind-Value="oPaginaCLS.mensaje" class="form form-control"/>
+        <ValidationMessage For="@(()=>oPaginaCLS.mensaje)"/>
+    </div>
+    <div class="form-group">
+        <label>Accion</label>
+        <InputText @bind-Value="oPaginaCLS.accion" class="form form-control"/>
+        <ValidationMessage For="@(()=>oPaginaCLS.accion)" />
+    </div>
+    <div class="form-group">
+        <label>Visible</label>
+        <InputCheckbox @bind-Value="oPaginaCLS.bvisible" />
+    </div>
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public PaginaCLS oPaginaCLS{ get; set; } = new PaginaCLS();
+
+    public string ruta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string nombre = "listaPagina";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+    public async Task Guardar()
+    {
+        var respuesta = await http.PostAsJsonAsync("api/Pagina/Guardar", oPaginaCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+        if(rpta == 1)
+        {
+
+            navigationManager.NavigateTo(ruta);
+        }
+    }
+
+}

@@ -1,0 +1,103 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<EditForm Model="oTipoUsuarioCLS" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>ID Tipo Usuario</label>
+        <InputNumber readOnly @bind-Value="oTipoUsuarioCLS.iidTipoUsuario" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Nombre</label>
+        <InputText @bind-Value="oTipoUsuarioCLS.nombre" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputText @bind-Value="oTipoUsuarioCLS.descripcion" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Selecciona las Páginas</label>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Opciones</th>
+                    <th>Página</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in listaPaginas)
+                {
+                    <tr>
+                        <td>
+                            @if(oTipoUsuarioCLS.arrayId.Contains(item.iidPagina)){
+                            <input type="checkbox" checked @onchange="@(()=>CambiarValor(item.iidPagina))" />
+                            }
+                            else{
+                            <input type="checkbox" @onchange="@(()=>CambiarValor(item.iidPagina))" />
+                            }
+                        </td>
+
+                        <td>@item.mensaje</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+
+
+@code {
+
+    [Parameter]
+    public TipoUsuarioCLS oTipoUsuarioCLS { get; set; } = new TipoUsuarioCLS();
+
+    public string ruta { get; set; }
+
+    public List<PaginaCLS> listaPaginas = new List<PaginaCLS>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        listaPaginas = await http.GetFromJsonAsync<List<PaginaCLS>>("api/Pagina/ListarPagina");
+
+        string nombre = "listaTipoUsuario";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+    public async Task Guardar()
+    {
+        var respuesta = await http.PostAsJsonAsync("api/TipoUsuario/Guardar", oTipoUsuarioCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+    }
+
+    public void CambiarValor(int iidPagina)
+    {
+        if (oTipoUsuarioCLS.arrayId.Contains(iidPagina))
+        {
+            oTipoUsuarioCLS.arrayId.Remove(iidPagina);
+        }
+        else
+        {
+            oTipoUsuarioCLS.arrayId.Add(iidPagina);
+        }
+    }
+}

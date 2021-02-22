@@ -1,0 +1,123 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsRuntime
+@inject NavigationManager navigationManager
+
+@{
+    string foto = oLibroCLS.fotoCaratula;
+    string pdf = oLibroCLS.libroPDF;
+}
+
+<EditForm Model="@oLibroCLS" OnValidSubmit="GuardarDatos">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>ID Libro</label>
+        <InputNumber @bind-Value="oLibroCLS.iidLibro" readonly class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Titulo Libro</label>
+        <InputText @bind-Value="oLibroCLS.titulo" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Resumen</label>
+        <InputTextArea @bind-Value="oLibroCLS.resumen" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Número de Páginas</label>
+        <InputNumber @bind-Value="oLibroCLS.numPag" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Stock</label>
+        <InputNumber @bind-Value="oLibroCLS.stock" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Autor</label>
+        <InputSelect @bind-Value="oLibroCLS.iidAutor" class="form-control">
+            <option value="">Selecciona</option>
+            @foreach (var item in listaAutor)
+            {
+                if(oLibroCLS.iidAutor == item.iidAutor.ToString())
+                {
+                    <option value="@item.iidAutor" selected>@item.nombreAutor</option>
+                }
+                else
+                {
+                <option value="@item.iidAutor">@item.nombreAutor</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>Foto carátula</label>
+        <img width="100" height="100" src="@foto" id="imgFoto" style="display: block" />@*Aquí hacemos el Prewiew de la foto*@
+        <input type="file" id="fuFoto" accept="image/png, image/jpg, image/jpeg" @onchange="Preview" />
+    </div>
+
+    <div class="form-group">
+        <label>Libro PDF</label>
+        <iframe src="@pdf" id="ifData" style="display: block"></iframe>
+        <input type="file" id="fuLibro" accept="application/pdf" @onchange="PreviewData" />
+    </div>
+    
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+@code {
+
+    public string ruta { get; set; }
+
+    [Parameter]
+    public LibroCLS oLibroCLS { get; set; } = new LibroCLS();
+
+    public List<AutorCLS> listaAutor = new List<AutorCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaAutor = await http.GetFromJsonAsync<List<AutorCLS>>("api/Autor/ListarAutor");
+
+        string nombre = "listaLibro";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = "/" + nombre + "/" + idPagina.ToString();
+    }
+
+    protected async Task Preview()
+    {
+        await ijsRuntime.InvokeVoidAsync("preview");
+    }
+
+    protected async Task PreviewData()
+    {
+        await ijsRuntime.InvokeVoidAsync("previewData");
+    }
+
+    public async Task GuardarDatos()
+    {
+        string img = await ijsRuntime.InvokeAsync<string>("obtenerImagen");
+        string pdf = await ijsRuntime.InvokeAsync<string>("obtenerPdf");
+
+        oLibroCLS.fotoCaratula = img;
+        oLibroCLS.libroPDF = pdf;
+
+        var respuesta = await http.PostAsJsonAsync("api/Libro/GuardarLibro", oLibroCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        if(rpta == 1)
+        {
+            navigationManager.NavigateTo(ruta);
+        }
+    }
+}

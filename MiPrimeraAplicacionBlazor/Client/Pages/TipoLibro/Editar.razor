@@ -1,0 +1,22 @@
+﻿@page "/editarTipoLibro/{id}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+
+<h3>EditarTipoLibro</h3>
+
+
+<FormularioTipoLibro oTipoLibroCLS=oTipoLibroCLS />
+
+
+@code {
+
+    [Parameter]
+    public string id { get; set; }
+
+    public TipoLibroCLS oTipoLibroCLS = new TipoLibroCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oTipoLibroCLS = await http.GetFromJsonAsync<TipoLibroCLS>("api/TipoLibro/obtenerTipoLibro/" + id);
+    }
+}

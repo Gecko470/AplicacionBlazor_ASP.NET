@@ -1,0 +1,57 @@
+﻿
+<!-- Modal -->
+<div class="modal fade" id="@idPopUp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Confirmar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>¿@TituloPopUpConfirmacion con ID  @id?</h5>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+
+                @if (TituloPopUpConfirmacion == "Desea eliminar el registro")
+                {
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="Eliminar">Aceptar </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="EventoClick">Aceptar </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string id { get; set; }
+
+    [Parameter]
+    public string idPopUp { get; set; } = "exampleModal";
+
+    [Parameter]
+    public string TituloPopUpConfirmacion { get; set; } = "Desea eliminar el registro";
+
+    [Parameter]
+    public EventCallback<String> eventoEliminar { get; set; }
+
+    public void Eliminar()
+    { 
+    eventoEliminar.InvokeAsync(id);
+    }
+
+    public void EventoClick()
+    {
+        string[] valores = { id, TituloPopUpConfirmacion };
+        eventoValores.InvokeAsync(valores);
+    }
+
+    [Parameter]
+    public EventCallback<String[]> eventoValores { get; set; }
+
+}

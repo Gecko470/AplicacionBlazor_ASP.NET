@@ -1,0 +1,43 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager navigation
+@inject AuthenticationStateProvider auth
+@using MiPrimeraAplicacionBlazor.Client.Service
+
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        @*<a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>*@
+        <AuthorizeView>
+            <Authorized>
+                <button @onclick="cerrarSesion" class="btn btn-danger">Cerrar Sesión</button>
+            </Authorized>
+            <NotAuthorized>
+                <button @onclick="login" class="btn btn-primary">Login</button>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+
+@code{
+
+    public void cerrarSesion()
+    {
+        ((Autenticacion)auth).cerrarSesion();
+        navigation.NavigateTo("/");
+    }
+
+    public void login()
+    {
+        navigation.NavigateTo("/");
+    }
+
+}

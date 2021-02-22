@@ -1,0 +1,71 @@
+﻿@page "/formulario"
+
+
+<div class="form-group">
+    <label>Dame un número:</label>
+    <input type="text" @bind="num1" class="form-control" />
+</div>
+
+<div class="form-group">
+    <label>Dame otro número:</label>
+    <input type="text" @bind="num2" class="form-control" />
+</div>
+
+<button class="btn btn-primary" @onclick="Sumar">Sumar</button>
+<button class="btn btn-primary" @onclick="Restar">Restar</button>
+<button class="btn btn-primary" @onclick="Multiplicar">Multiplicar</button>
+
+<p>Resultado:  @total</p>
+
+
+<h1>Uso del Bind</h1>
+
+<div>
+    <label>Introduce un número</label>
+    <input type="text" @bind="n" />
+</div>
+
+<div>
+    <label>Reactividad</label>
+    <input type="text" value="@n" />
+</div>
+
+<h1>Uso del Bind-Value</h1>
+
+<div>
+    <label>Introduce un número</label>
+    <input type="text" @bind-value="num" @bind-value:event="oninput" />
+</div>
+
+<div>
+    <label>Reactividad</label>
+    <input type="text" value="@num" />
+</div>
+
+
+
+@code {
+
+    private int n = 0;
+    private int num = 0;
+
+    private int num1 = 0;
+    private int num2 = 0;
+    private int total = 0;
+
+    public void Sumar()
+    {
+        total = num1 + num2;
+    }
+
+    public void Restar()
+    {
+        total = num1 - num2;
+    }
+
+    public void Multiplicar()
+    {
+        total = num1 * num2;
+    }
+
+}

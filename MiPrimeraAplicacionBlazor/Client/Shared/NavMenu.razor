@@ -1,0 +1,130 @@
+﻿@inject HttpClient http
+@using MiPrimeraAplicacionBlazor.Shared
+<AuthorizeView>
+    <Authorized>
+        <div class="top-row pl-4 navbar navbar-dark">
+            <a class="navbar-brand" href="">MiPrimeraAplicacionBlazor</a>
+            <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+            <ul class="nav flex-column">
+
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="@rutaPrincipal" Match="NavLinkMatch.All">
+                        <span class="oi oi-home" aria-hidden="true"></span> Página Principal
+                    </NavLink>
+                </li>
+
+                @foreach (var item in listaPaginas)
+                {
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="@item.accion" Match="NavLinkMatch.All">
+                            <span class="oi oi-list-rich" aria-hidden="true"></span> @item.mensaje
+                        </NavLink>
+                    </li>
+                }
+
+                @*<li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="formulario">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Formulario
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="formularioLista">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Formulario Lista
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaTipoLibro">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Tipo libro
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaAutor">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Autor
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaPersonas">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Personas
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaLibro">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Libro
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaPagina">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Pagina
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaTipoUsuario">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Tipos Usuario
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="listaPaginaTipoUsuario">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Lista Página Tipo Usuario
+            </NavLink>
+        </li>*@
+            </ul>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    public string rutaPrincipal { get; set; }
+
+    public string iidUsuario { get; set; }
+
+    public List<PaginaCLS> listaPaginas { get; set; } = new List<PaginaCLS>();
+
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authUser = await auth;
+        var user = authUser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+
+            iidUsuario = user.Identity.Name;
+            int iidPersona = await http.GetFromJsonAsync<int>("api/Personas/obtnerIdPersona/" + iidUsuario);
+            rutaPrincipal = "paginaPrincipal/" + iidPersona;
+            listaPaginas = await http.GetFromJsonAsync<List<PaginaCLS>>("api/Usuario/listarPagPorTipoUsuario/" + iidUsuario);
+        }
+    }
+}

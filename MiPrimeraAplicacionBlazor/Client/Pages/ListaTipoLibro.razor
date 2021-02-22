@@ -1,0 +1,105 @@
+﻿@page "/listaTipoLibro/{idPagina}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+
+<h1>Tipos de Libro</h1>
+
+
+@{
+    string[] cabecerasTabla = { "ID Tipo Libro", "Nombre Tipo Libro", "Descripción Tipo Libro" };
+    string[] parametrosAmostrar = { "IIDTIPOLIBRO", "NOMBRETIPOLIBRO", "DESCRIPCIONTIPOLIBRO" };
+}
+
+<AuthorizeView>
+
+    <Authorized>
+
+        <ListarRazor2 cabeceras=cabecerasTabla parametrosAmostrar="parametrosAmostrar" lista=listaTipoLibro label="Introduce el nombre del Tipo de Libro"
+                      type="text" eventoBusqueda="Buscar" button="false" permitirEliminar=permitirEliminar permitirAgregar=permitirAgregar permitirEditar=permitirEditar
+                      eventoEliminar="EliminarDatos" rutaAgregar="/agregarTipoLibro" rutaEditar="/editarTipoLibro"
+                      permitirExcel=permitirExcel permitirPDF=permitirPDF permitirWord=permitirWord tituloReporte="Listado Tipo Libro" />
+
+    </Authorized>
+
+</AuthorizeView>
+
+
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    List<int> listaBotones = new List<int>();
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExcel = false;
+    public bool permitirWord = false;
+    public bool permitirPDF = false;
+
+    [Parameter]
+    public string idPagina { get; set; }
+
+    private TipoLibroCLS[] listaTipoLibro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaTipoLibro = await http.GetFromJsonAsync<TipoLibroCLS[]>("api/TipoLibro/Get");
+
+        //Para los botones
+
+        var authUser = await auth;
+        var user = authUser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + idPagina);
+
+            if (listaBotones.Count > 0)
+            {
+                if (listaBotones.Contains(1))
+                {
+                    permitirAgregar = true;
+                }
+                if (listaBotones.Contains(2))
+                {
+                    permitirEditar = true;
+                }
+                if (listaBotones.Contains(3))
+                {
+                    permitirEliminar = true;
+                }
+                if (listaBotones.Contains(4))
+                {
+                    permitirExcel = true;
+                }
+                if (listaBotones.Contains(5))
+                {
+                    permitirWord = true;
+                }
+                if (listaBotones.Contains(6))
+                {
+                    permitirPDF = true;
+                }
+            }
+        }
+    }
+
+    public async Task Buscar(string data)
+    {
+        listaTipoLibro = await http.GetFromJsonAsync<TipoLibroCLS[]>("api/TipoLibro/Filtrar/" + data);
+    }
+
+    public async Task EliminarDatos(string data)
+    {
+        int respuesta = await http.GetFromJsonAsync<int>("api/TipoLibro/EliminarTipoLibro/" + data);
+
+        @if (respuesta == 1)
+        {
+            listaTipoLibro = await http.GetFromJsonAsync<TipoLibroCLS[]>("api/TipoLibro/Get");
+        }
+    }
+}

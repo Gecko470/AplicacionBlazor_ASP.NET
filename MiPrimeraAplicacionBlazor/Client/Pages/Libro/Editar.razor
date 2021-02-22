@@ -1,0 +1,23 @@
+﻿@page "/editarLibro/{iidLibro}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+<h3>Editar Libro</h3>
+
+
+<FormularioLibro oLibroCLS="oLibroCLS"/>
+
+
+
+@code {
+
+    [Parameter]
+    public string iidLibro { get; set; }
+
+    public LibroCLS oLibroCLS = new LibroCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oLibroCLS = await http.GetFromJsonAsync<LibroCLS>("api/Libro/RecuperarLibro/" + iidLibro);
+    }
+}
+

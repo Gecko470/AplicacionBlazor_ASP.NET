@@ -1,0 +1,22 @@
+﻿@page "/editarPagina/{iidPagina}"
+@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+<h3>Editar Página</h3>
+
+
+<FormularioPagina oPaginaCLS="oPaginaCLS"/>
+
+
+
+@code {
+
+    PaginaCLS oPaginaCLS = new PaginaCLS();
+
+    [Parameter]
+    public string iidPagina { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oPaginaCLS = await http.GetFromJsonAsync<PaginaCLS>("api/Pagina/RecuperarDatos/" + iidPagina);
+    }
+}

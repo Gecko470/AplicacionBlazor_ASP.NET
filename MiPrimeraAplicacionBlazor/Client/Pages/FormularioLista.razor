@@ -1,0 +1,76 @@
+﻿@page "/formularioLista"
+@using MiPrimeraAplicacionBlazor.Shared
+
+<form @onsubmit="Guardar">
+
+    <div class="form-group">
+        <label>Selecciona un día de la semana</label>
+        <select class="form-control" @bind="cboSemana">
+            <option value="">Selecciona</option>
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miercoles">Miercoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+            <option value="Sabado">Sabado</option>
+            <option value="Domingo">Domingo</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Introduce la Tarea</label>
+        <input type="text" class="form-control" @bind="txtTarea" required />
+    </div>
+
+    <div class="form-group">
+        <label>Tarea realizada ?</label>
+        <input type="checkbox" @bind="chkRealizado" />
+    </div>
+
+    <div class="form-group">
+        <label>Fecha Tarea</label>
+        <input type="date" @bind="dtFechaTarea" @bind:format="yyyy-MM-dd" />
+    </div>
+
+    <div>
+        <input type="submit" value="Guardar" class="btn btn-primary" />
+    </div>
+
+</form>
+
+<TablaTareas listaTareas=listaTareas onClickEliminar="Eliminar" />
+
+@code {
+
+    public List<TareaCLS> listaTareas = new List<TareaCLS>();
+
+    public string cboSemana;
+    public string txtTarea;
+    public bool chkRealizado;
+    public DateTime dtFechaTarea = DateTime.Now;
+
+    public void Guardar()
+    {
+        listaTareas.Add(new TareaCLS
+        {
+
+            diaSemana = cboSemana,
+            Tarea = txtTarea,
+            Realizado = chkRealizado,
+            fechaTarea = dtFechaTarea
+
+        });
+    }
+
+    public void Eliminar(string data)
+    {
+        @foreach (TareaCLS item in listaTareas)
+        {
+            @if (item.Tarea == data)
+            {
+                listaTareas.Remove(item);
+            }
+        }
+    }
+
+}

@@ -1,0 +1,83 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+
+
+
+<EditForm Model="@oReservaCLS" OnValidSubmit="Guardar">
+    @*Ponemos el EditForm por fuera del Complemento PouUp para que nos funcione el Botón submit,
+        si no no funciona, porque el boton submit esta en el ModalFooter y no el el ModalBody del PopUp*@
+
+    <PopUp idPopUp="@idPopUp" tituloPopUp="@tituloPopUp" idBtnCerrar="@idBtnCerrar" >
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>ID Libro</label>
+            <InputNumber @bind-Value="oReservaCLS.iidLibro" readOnly class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Usuario</label>
+            <InputSelect @bind-Value="oReservaCLS.iidUsuario" class="form-control">
+                <option value="">Selecciona</option>
+                @foreach (var item in listaUsuario)
+                {
+                    <option value="@item.iidUsuario">@item.nombre</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label>Cantidad</label>
+            <InputNumber @bind-Value="oReservaCLS.cantidad" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Fecha Inicio</label>
+            <InputDate @bind-Value="oReservaCLS.fechaInicio" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Fecha Fin</label>
+            <InputDate @bind-Value="oReservaCLS.fechaFin" class="form-control" />
+        </div>
+
+    </PopUp>
+
+</EditForm>
+
+
+@code {
+
+    [Parameter]
+    public EventCallback<ReservaCLS> eventoGuardar { get; set; }
+
+    [Parameter]
+    public int iidLibro { get; set; }
+
+    [Parameter]
+    public List<UsuarioCLS> listaUsuario { get; set; } = new List<UsuarioCLS>();
+
+    public ReservaCLS oReservaCLS { get; set; } = new ReservaCLS();
+
+    [Parameter]
+    public string idBtnCerrar { get; set; } = "btn-close";
+
+    [Parameter]
+    public string idPopUp { get; set; } = "exampleModal";
+
+    [Parameter]
+    public string tituloPopUp { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaUsuario = await http.GetFromJsonAsync<List<UsuarioCLS>>("api/Usuario/ListarUsuarios");
+    }
+
+    public void Guardar()
+    {
+        eventoGuardar.InvokeAsync(oReservaCLS);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        oReservaCLS.iidLibro = iidLibro;
+    }
+}

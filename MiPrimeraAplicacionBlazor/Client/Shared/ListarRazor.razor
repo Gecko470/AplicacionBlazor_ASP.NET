@@ -1,0 +1,317 @@
+﻿@inject NavigationManager navitation
+
+@if (lista == null)
+{
+    <h3>Cargando ...</h3>
+}
+else
+{
+    @if (permitirAgregar)
+    {
+        <div>
+            <NavLink href="@rutaAgregar">
+                <button class="btn btn-primary">Agregar</button>
+            </NavLink>
+        </div>
+    }
+
+    @if (type != "none")
+    {
+        <label>@label</label>
+
+        @if (type == "text")
+        {
+
+            @if (button == true)
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+
+                    <input type="text" @bind-value="valor" @bind-value:event="oninput" class="form form-control" />
+                    <button class="btn btn-primary" @onclick="Buscar">Buscar</button>
+
+                </div>
+            }
+            else
+            {
+                <div class="mb-4">
+
+                    <input type="text" @bind-value="valor" @bind-value:event="oninput" @onkeyup="Buscar" class="form form-control" />
+
+                </div>
+            }
+        }
+        else if (type == "combobox")
+        {
+            @if (button == true)
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+                    <select @bind-value="valor" @bind-value:event="oninput" class="form form-control">
+
+                        <option value="">Selecciona</option>
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+
+                    </select>
+
+                    <input type="button" value="Buscar" class="btn btn-primary" @onclick="Buscar" />
+                </div>
+            }
+            else
+            {
+                <div class="mb-4" style="display:grid; grid-template-columns: 8fr 1fr">
+                    <select @bind-value="valor" @bind-value:event="oninput" @onchange="Buscar" class="form form-control">
+
+                        <option value="">Selecciona</option>
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+
+                    </select>
+                </div>
+            }
+        }
+    }
+
+    <div class="dataTables_wrapper">
+        @*Estilos datable js*@
+        <div class="dataTables_length" id="example_length">
+            <label>
+                Show
+                <select name="example_length" aria-controls="example" class="" @bind-value="numRegPag" @bind-value:event="oninput" @onchange="CambiarRegPag">
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select> entries
+            </label>
+        </div>
+
+        <table class="table dataTable no-footer">
+
+            <thead>
+                <tr role="row">
+                    @*Estilos datable js*@
+                    @foreach (var cab in cabeceras)
+                    {
+                        <th>
+                            @cab
+                        </th>
+                    }
+
+                    @if (permitirEliminar == true || permitirEditar == true)
+                    {
+                        <th>Operaciones</th>
+                    }
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @{
+                    List<Object> listaRetornar = new List<object>();
+                    int indiceValor;
+
+                    @if (indiceVal > 1)
+                    {
+                        indiceValor = indiceVal;
+                    }
+                    else
+                    {
+                        indiceValor = 1;
+                    }
+
+                    int inicio = (indiceValor * numRegPag) - numRegPag;
+                    int final = indiceValor * numRegPag;
+
+                    @for (int i = inicio; i < final; i++)
+                    {
+                        @if (i < lista.Length)
+                        {
+                            listaRetornar.Add(lista[i]);
+                        }
+                    }
+                }
+
+
+                @foreach (object obj in listaRetornar)
+                {
+                    <tr role="row" class="odd">
+                        @*Estilos datable js*@
+                        @foreach (var propiedad in obj.GetType().GetProperties())
+                        {
+                            <td>@propiedad.GetValue(obj)</td>
+                        }
+
+                        @if (permitirEliminar == true || permitirEditar == true)
+                        {
+                            <td>
+                                @if (permitirEditar)
+                                {
+
+                                    <button class="btn btn-primary fa fa-edit" @onclick="@(()=>Editar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+
+                                }
+
+                                @if (permitirEliminar)
+                                {
+                                    <button class="btn btn-danger fa fa-trash" data-bs-toggle="modal" data-bs-target="#exampleModal" @onclick="@(()=>Eliminar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+
+                                    <MensajeConfirmacion id="@valorEliminar" eventoEliminar="EliminarDatos" />
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+        @{
+            int inicioPaginado = inicio + 1;
+            int finalPaginado = inicioPaginado + numRegPag - 1;
+            @if (finalPaginado > lista.Length)
+            {
+                finalPaginado = lista.Length;
+            }
+        }
+        <div class="dataTables_info" id="example_info" role="status" aria-live="polite">Showing @inicioPaginado to @finalPaginado of @lista.Length entries</div>
+
+        <div class="dataTables_paginate paging_simple_numbers">
+            <span>
+                @for (int i = 1; i <= numPaginas(); i++)
+                {
+                    int data = i;
+                    <button class="paginate_button" aria-controls="example" data-dt-idx="1" tabindex="0" @onclick="@(() => Paginar(data))">
+                        @i
+                    </button>
+                }
+            </span>
+        </div>
+    </div>
+}
+
+@code {
+
+    public string valor { get; set; }
+
+    public string valorEliminar { get; set; }
+
+    [Parameter]
+    public string[] cabeceras { get; set; }
+
+    //Este parametro me trae todos los datos de la tabla
+    [Parameter]
+    public object[] lista { get; set; }
+
+    //Esta variable me muestra la lista de datos para el paginado
+    public List<Object> listaRetornar { get; set; }
+
+    //Numero de la página
+    public int indiceVal { get; set; }
+
+    //Metodo para calcular el número de páginas
+    public int numPaginas()
+    {
+        int numBotones;
+        int numRegistros = lista.Length;
+
+        if (numRegistros % numRegPag == 0)
+        {
+            numBotones = numRegistros / numRegPag;
+        }
+        else
+        {
+            numBotones = (numRegistros / numRegPag) + 1;
+        }
+
+        return numBotones;
+    }
+
+    [Parameter]
+    public string type { get; set; } = "none";
+
+    [Parameter]
+    public string label { get; set; } = "";
+
+    [Parameter]
+    public bool button { get; set; } = true;
+
+    [Parameter]
+    public object[] combobox { get; set; } = null;
+
+    [Parameter]
+    public string displayMember { get; set; } = null;
+
+    [Parameter]
+    public string valueMember { get; set; } = null;
+
+    [Parameter]
+    public bool permitirAgregar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEditar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEliminar { get; set; } = false;
+
+    [Parameter]
+    public string rutaAgregar { get; set; } = "";
+
+    [Parameter]
+    public string rutaEditar { get; set; } = "";
+
+    public int numRegPag { get; set; } = 5;
+
+    public void CambiarRegPag(ChangeEventArgs e)
+    {
+        int valorCambiado = int.Parse(e.Value.ToString());
+        numRegPag = valorCambiado;
+    }
+
+    [Parameter]
+    public EventCallback<String> eventoEditar { get; set; }
+
+    [Parameter]
+    public EventCallback<String> eventoEliminar { get; set; }
+
+
+    [Parameter]
+    public EventCallback<String> eventoBusqueda { get; set; }
+
+    public void Buscar()
+    {
+        eventoBusqueda.InvokeAsync(valor);
+    }
+
+    public void Editar(string data)
+    {
+        navitation.NavigateTo(rutaEditar + "/" + data);
+        eventoEditar.InvokeAsync(data);
+    }
+
+    public void Eliminar(string data)
+    {
+        valorEliminar = data;
+    }
+
+    public void EliminarDatos(string data)
+    {
+        eventoEliminar.InvokeAsync(data);
+    }
+
+    public void Paginar(int indicePag)
+    {
+        indiceVal = indicePag;
+    }
+
+}

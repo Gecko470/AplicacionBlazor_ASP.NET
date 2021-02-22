@@ -1,0 +1,105 @@
+﻿@using MiPrimeraAplicacionBlazor.Shared
+@inject HttpClient http
+@inject NavigationManager navigationManager
+
+
+<EditForm Model="@oAutorCLS" OnValidSubmit="GuardarDatos">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Id Autor</label>
+        <InputNumber @bind-Value="oAutorCLS.iidAutor" readOnly class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Nombre Autor</label>
+        <InputText @bind-Value="oAutorCLS.nombre" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Apellido Paterno</label>
+        <InputText @bind-Value="oAutorCLS.aPaterno" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Apellido Materno</label>
+        <InputText @bind-Value="oAutorCLS.aMaterno" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputTextArea @bind-Value="oAutorCLS.descripcion" class="form form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Sexo</label>
+        <InputSelect @bind-Value="oAutorCLS.iidSexo" class="form form-control">
+            <option value="">Selecciona</option>
+            @foreach (SexoCLS item in listaSexo)
+            {
+                <option value="@item.iidSexo">@item.nombreSexo</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>Pais</label>
+        <InputSelect @bind-Value="oAutorCLS.iidPais" class="form form-control">
+            <option value="">Selecciona</option>
+            @foreach (PaisCLS item in listaPais)
+            {
+                <option value="@item.iidPais">@item.nombrePais</option>
+            }
+        </InputSelect>
+    </div>
+
+    <input type="submit" value="Guardar" class="btn btn-primary" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Volver" class="btn btn-danger" />
+    </NavLink>
+
+</EditForm>
+
+
+
+
+
+
+
+@code {
+
+    [Parameter]
+    public AutorCLS oAutorCLS { get; set; } = new AutorCLS();
+
+    [Parameter]
+    public List<SexoCLS> listaSexo { get; set; }
+
+    [Parameter]
+    public List<PaisCLS> listaPais { get; set; }
+
+    public string ruta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string nombre = "listaAutor";
+        int idPagina = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPag/" + nombre);
+        ruta = nombre + "/" + idPagina.ToString();
+    }
+
+    public async Task GuardarDatos()
+    {
+
+        var respuesta = await http.PostAsJsonAsync("api/Autor/GuardarDatos", oAutorCLS);
+        int rpta = await respuesta.Content.ReadFromJsonAsync<int>();
+
+        @if (rpta == 1)
+        {
+            navigationManager.NavigateTo(ruta);
+        }
+    }
+
+}
+
